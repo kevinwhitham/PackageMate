@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   packagemate-server:
     build:
@@ -12,16 +10,15 @@ services:
     environment:
       - MONGO_USERNAME=$MONGO_USERNAME
       - MONGO_PASSWORD=$MONGO_PASSWORD
-      - MONGO_HOSTNAME=db
+      - MONGO_HOSTNAME=packagemate-db
       - MONGO_PORT=$MONGO_PORT
       - MONGO_DB=$MONGO_DB 
       - UPS_ACCESS_KEY=$UPS_ACCESS_KEY
       - USPS_USERNAME=$USPS_USERNAME
-    networks:
-      - app-network
     # this will work as long as you haven't changed the mongodb port from the default
     # if you have, change it here as well
-    command: ./wait-for.sh db:27017 -- npm start
+    command: ./wait-for.sh packagemate-db:27017 -- npm start
+
   packagemate-client:
     build:
       context: client
@@ -36,7 +33,7 @@ services:
     environment:
       - MONGO_USERNAME=$MONGO_USERNAME
       - MONGO_PASSWORD=$MONGO_PASSWORD
-      - MONGO_HOSTNAME=db
+      - MONGO_HOSTNAME=packagemate-db
       - MONGO_PORT=$MONGO_PORT
       - MONGO_DB=$MONGO_DB 
       - UPS_ACCESS_KEY=$UPS_ACCESS_KEY
@@ -44,28 +41,26 @@ services:
     ports:
       # this is the port of the main app, by default, port 80 is
       # exposed on the host machine (localhost or 127.0.0.1)
-      - "80:3000"
-    networks:
-      - app-network
+      - "8484:3000"
     command: npm start
     stdin_open: true
+  
   db:
     image: mongo:4.1.8-xenial
-    container_name: db
+    container_name: packagemate-db
     restart: unless-stopped
     env_file: .env
     environment:
       - MONGO_INITDB_ROOT_USERNAME=$MONGO_USERNAME
       - MONGO_INITDB_ROOT_PASSWORD=$MONGO_PASSWORD
     volumes:  
-      - dbdata:/data/db   
-    networks:
-      - app-network 
+      - ./packagemate-dbdata:/data/db   
 
 networks:
-  app-network:
-    driver: bridge
+  default:
+    name: chonk_net
+    external: true
 
-volumes:
-  dbdata:
+#volumes:
+  #packagemate-dbdata:
   
