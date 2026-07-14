@@ -3,17 +3,58 @@ const axios = require('axios');
 const playwright = require('playwright');
 
 const uspsTracker = (trackingNumber) => {
-  let url = "https://secure.shippingapis.com/ShippingAPI.dll?API=TrackV2&XML=";
-  let xml = `<TrackRequest USERID=\"${process.env.USPS_USERNAME}\"><TrackID ID=\"${trackingNumber}\"></TrackID></TrackRequest>`
-  console.debug(`Using url ${url} with  xml ${xml}`);
-  return axios.get(`${url}${xml}`)
-    .then(res => {
-      console.log(`USPS tracker res: ${res.data}`);
-      return res.data
-    })
-    .catch(err => { 
-      return err 
-    })
+  // get bearer token
+
+  let url = `${process.env.USPS_API_URL}/oauth2/v3/token`
+
+  let params = new URLSearchParams();
+  params.append('grant_type', 'client_credentials');
+  params.append('client_id', process.env.USPS_API_KEY);
+  params.append('client_secret', process.env.USPS_SECRET_KEY);
+
+  let options = {
+    method: 'POST',
+    url: url,
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    data: params
+  };
+
+  console.debug(`Getting usps tracking information for ${trackingNumber}`)
+
+  // first get access_token at auth endpoint
+  return axios.request(options)
+    .then((response) => {
+      // if we succeeded, save access token and use to call Track API
+      console.debug("usps: Got API access tokent")
+      let access_token = response.data.access_token;
+      let track_url = `${process.env.USPS_API_URL}/tracking/v3r2`
+      let track_options = {
+        method: 'POST', url: track_url,
+        headers: {
+          'Authorization': `Bearer ${access_token}`,
+          'Content-Type': 'application/json'
+        },
+        data: [
+            {
+              'trackingNumber': trackingNumber
+            }
+          ],
+      };
+      return axios.request(track_options)
+        .then((response) => {
+          console.log(`usps tracker res: ${util.inspect(response.data, depth = 4)}`);
+          return response.data;
+        }).catch((error) => {
+          console.error('usps tracker error:')
+          console.error(error);
+          return { 'error': `Error getting tracking info: ${error.toJSON().message}` }
+        })
+    }).catch((error) => {
+      console.error(error);
+      return { 'error': `Error authenticating to API: ${error.toJSON().message}` }
+    });
 }
 
 const upsTracker = (trackingNumber) => {

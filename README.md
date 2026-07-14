@@ -18,9 +18,9 @@ update, depending on how quickly the website responds, but they should eventuall
 ## Tracking APIs:
 
 USPS: 
-  - https://www.usps.com/business/web-tools-apis/track-and-confirm-api_files/track-and-confirm-api.htm#_Toc41911503
-  - Sign up here (free): https://www.usps.com/business/web-tools-apis/documentation-updates.htm
-  - Once you get it, put your USPS "username" that they provide into `.env` in the proper place
+  - Sign up for a (free) business account at usps.com
+  - Create an app to get API tokens
+  - `USPS_API_KEY` and `USPS_SECRET_KEY` into `.env`
 
 UPS: 
  - https://www.ups.com/upsdeveloperkit/
