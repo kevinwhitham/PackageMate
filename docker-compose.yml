@@ -56,11 +56,6 @@ services:
     volumes:  
       - ./packagemate-dbdata:/data/db   
 
-networks:
-  default:
-    name: chonk_net
-    external: true
-
 #volumes:
   #packagemate-dbdata:
   
